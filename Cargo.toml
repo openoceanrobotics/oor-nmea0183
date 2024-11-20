@@ -1,0 +1,6 @@
+[package]
+name = "oor-nmea0183"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
