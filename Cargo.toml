@@ -2,6 +2,10 @@
 name = "oor-nmea0183"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Convert NMEA0183 sentences"
+homepage = "https://github.com/openoceanrobotics"
+repository = "https://github.com/openoceanrobotics/oor-nmea0183"
 
 [dependencies]
 pest = "2.7.14"
