@@ -1,0 +1,7 @@
+NMEA = { "$" ~ talker_id ~ message_type ~ "," ~ fields ~ checksum? }
+talker_id = { ASCII_ALPHANUMERIC{2} }
+message_type = { ASCII_ALPHANUMERIC{3} }
+fields = { (valid_chars)* ~ ("," ~ (valid_chars)*)* }
+valid_chars = { ASCII_ALPHANUMERIC | " " | "\"" | "#" | "%" | "&" | "'" | "(" | ")" | "+" | "-" | "." | "/" | ":" | ";" | "<" | "=" | ">" | "?" | "@" | "[" | "]" | "_" | "`" | "{" | "}" | "|" }
+checksum = { "*" ~ ASCII_HEX_DIGIT{2} }
+WHITESPACE = _{ " " }
