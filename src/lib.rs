@@ -1,14 +1,14 @@
 pub mod sentences;
 use pest::Parser;
 use pest_derive::Parser;
-use sentences::mwv::Mwv;
+use sentences::{gga::Gga, mwv::Mwv};
 
 #[derive(Debug)]
 pub enum Sentence {
     Unknown,
     Mwv(sentences::mwv::Mwv),
-    Xdr(sentences::xdr::Xdr),
-    // GGA(sentences::gga::Gga),
+    // Xdr(sentences::xdr::Xdr),
+    Gga(sentences::gga::Gga),
     // ILT(sentences::ilt::Ilt),
 }
 
@@ -29,6 +29,7 @@ impl NmeaParser {
         let nmea = NmeaParser::to_nmea(nmea_sentence);
         match nmea.message_id.as_ref() {
             "MWV" => Sentence::Mwv(Mwv::try_from(nmea).unwrap()),
+            "GGA" => Sentence::Gga(Gga::try_from(nmea).unwrap()),
             _ => Sentence::Unknown,
         }
     }
@@ -54,7 +55,6 @@ impl NmeaParser {
                         .split(',')
                         .map(|s| s.to_string())
                         .collect::<Vec<_>>();
-                    fields.retain(|x| !x.is_empty())
                 }
 
                 //TODO(@mattcairns): Verify checksum
@@ -79,21 +79,26 @@ mod tests {
     fn test_mwv() {
         let input = "$WIMWV,049,R,000.03,N,A*03";
         let output = NmeaParser::parse(input);
-        match output {
-            Sentence::Unknown => todo!(),
-            Sentence::Mwv(mwv) => {
-                assert_eq!(mwv.talker_id, "WI");
-                assert_eq!(mwv.message_id, "MWV");
-            }
+        if let Sentence::Mwv(mwv) = output {
+            assert_eq!(mwv.talker_id, "WI");
+            assert_eq!(mwv.message_id, "MWV");
         }
         let input = "$WIMWV,180,T,000.11,N,A*02";
         let output = NmeaParser::parse(input);
-        match output {
-            Sentence::Unknown => todo!(),
-            Sentence::Mwv(mwv) => {
-                assert_eq!(mwv.talker_id, "WI");
-                assert_eq!(mwv.message_id, "MWV");
-            }
+        if let Sentence::Mwv(mwv) = output {
+            assert_eq!(mwv.talker_id, "WI");
+            assert_eq!(mwv.message_id, "MWV");
+        }
+    }
+
+    #[test]
+    fn test_gga() {
+        let input = "$GPGGA,113342.000,5045.7837,N,00132.4127,W,1,06,1.3,-10.2,M,47.8,M,,0000*56";
+        let output = NmeaParser::parse(input);
+        println!("{:?}", output);
+        if let Sentence::Gga(mwv) = output {
+            assert_eq!(mwv.talker_id, "GP");
+            assert_eq!(mwv.message_id, "GGA");
         }
     }
 
@@ -101,7 +106,6 @@ mod tests {
     fn test_parse_nmea_0183() {
         let input = "$WIMWV,049,R,000.03,N,A*03";
         let nmea = NmeaParser::to_nmea(input);
-        println!("{:?}", nmea);
         assert_eq!(nmea.talker_id, "WI");
         assert_eq!(nmea.message_id, "MWV");
         assert_eq!(nmea.fields[0], "049");
@@ -112,7 +116,6 @@ mod tests {
 
         let input = "$WIMWV,180,T,000.11,N,A*02";
         let nmea = NmeaParser::to_nmea(input);
-        println!("{:?}", nmea);
         assert_eq!(nmea.talker_id, "WI");
         assert_eq!(nmea.message_id, "MWV");
         assert_eq!(nmea.fields[0], "180");
@@ -123,7 +126,6 @@ mod tests {
 
         let input = "$WIXDR,C,+023.1,C,TEMP,P,0.9989,B,PRESS,H,040,P,RH*25";
         let nmea = NmeaParser::to_nmea(input);
-        println!("{:?}", nmea);
         assert_eq!(nmea.talker_id, "WI");
         assert_eq!(nmea.message_id, "XDR");
         assert_eq!(nmea.fields[0], "C");
@@ -141,7 +143,6 @@ mod tests {
 
         let input = "$GPGGA,113342.000,5045.7837,N,00132.4127,W,1,06,1.3,-10.2,M,47.8,M,,0000*56";
         let nmea = NmeaParser::to_nmea(input);
-        println!("{:?}", nmea);
         assert_eq!(nmea.talker_id, "GP");
         assert_eq!(nmea.message_id, "GGA");
         assert_eq!(nmea.fields[0], "113342.000");
@@ -159,7 +160,6 @@ mod tests {
 
         let input = "$PGILT,A,+00,D,+01,D,+1,TILT*35";
         let nmea = NmeaParser::to_nmea(input);
-        println!("{:?}", nmea);
         assert_eq!(nmea.talker_id, "PG");
         assert_eq!(nmea.message_id, "ILT");
         assert_eq!(nmea.fields[0], "A");
