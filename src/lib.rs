@@ -1,7 +1,7 @@
 pub mod sentences;
 use pest::Parser;
 use pest_derive::Parser;
-use sentences::{gga::Gga, mwv::Mwv};
+use sentences::{error::ConvertNMEA0183Error, gga::Gga, mwv::Mwv};
 
 #[derive(Debug)]
 pub enum Sentence {
@@ -25,13 +25,13 @@ pub struct Nmea {
 
 pub struct NmeaParser {}
 impl NmeaParser {
-    pub fn parse(nmea_sentence: &str) -> Sentence {
+    pub fn parse(nmea_sentence: &str) -> Result<Sentence, ConvertNMEA0183Error> {
         let nmea = NmeaParser::to_nmea(nmea_sentence);
-        match nmea.message_id.as_ref() {
-            "MWV" => Sentence::Mwv(Mwv::try_from(nmea).unwrap()),
-            "GGA" => Sentence::Gga(Gga::try_from(nmea).unwrap()),
+        Ok(match nmea.message_id.as_ref() {
+            "MWV" => Sentence::Mwv(Mwv::try_from(nmea)?),
+            "GGA" => Sentence::Gga(Gga::try_from(nmea)?),
             _ => Sentence::Unknown,
-        }
+        })
     }
 
     fn to_nmea(nmea_sentence: &str) -> Nmea {
