@@ -23,9 +23,9 @@ impl TryFrom<Nmea> for Gga {
         let mwv = Gga {
             talker_id: nmea.talker_id,
             message_id: nmea.message_id,
-            fix_time: Some(nmea.fields[0].parse::<f32>()?),
-            latitude: Some(nmea.fields[1].parse::<f64>()?),
-            longitude: Some(nmea.fields[3].parse::<f64>()?),
+            fix_time: nmea.fields[0].parse::<f32>().ok(),
+            latitude: nmea.fields[1].parse::<f64>().ok(),
+            longitude: nmea.fields[3].parse::<f64>().ok(),
             fix_quality: Some(match nmea.fields[5].parse::<u8>()? {
                 0 => FixQuality::FixNotValid,
                 1 => FixQuality::GpsFix,
@@ -36,12 +36,12 @@ impl TryFrom<Nmea> for Gga {
                 6 => FixQuality::InsDeadReckoning,
                 field => return Err(ConvertNMEA0183Error::ConvertToEnumError(field.to_string())),
             }),
-            num_satellites: Some(nmea.fields[6].parse::<u32>()?),
-            hdop: Some(nmea.fields[7].parse::<f32>()?),
-            altitude_msl: Some(nmea.fields[8].parse::<f32>()?),
-            geoid_separation: Some(nmea.fields[10].parse::<f32>()?),
+            num_satellites: nmea.fields[6].parse::<u32>().ok(),
+            hdop: nmea.fields[7].parse::<f32>().ok(),
+            altitude_msl: nmea.fields[8].parse::<f32>().ok(),
+            geoid_separation: nmea.fields[10].parse::<f32>().ok(),
             differential_age: nmea.fields[12].parse::<f32>().ok(),
-            differential_gps_reference_station_id: Some(nmea.fields[13].parse::<u32>()?),
+            differential_gps_reference_station_id: nmea.fields[13].parse::<u32>().ok(),
         };
         Ok(mwv)
     }
