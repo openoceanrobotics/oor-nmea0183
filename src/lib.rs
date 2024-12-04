@@ -1,15 +1,16 @@
 pub mod sentences;
 use pest::Parser;
 use pest_derive::Parser;
-use sentences::{error::ConvertNMEA0183Error, gga::Gga, mwv::Mwv};
+use sentences::{error::ConvertNMEA0183Error, gga::Gga, mwv::Mwv, xdr::Xdr};
 
 #[derive(Debug)]
 pub enum Sentence {
     Unknown,
     Mwv(sentences::mwv::Mwv),
-    // Xdr(sentences::xdr::Xdr),
+    Xdr(sentences::xdr::Xdr),
     Gga(sentences::gga::Gga),
-    // ILT(sentences::ilt::Ilt),
+    Hdm(sentences::hdm::Hdm),
+    // Ilt(sentences::ilt::Ilt), // Propietary
 }
 
 #[derive(Parser)]
@@ -30,6 +31,8 @@ impl NmeaParser {
         Ok(match nmea.message_id.as_ref() {
             "MWV" => Sentence::Mwv(Mwv::try_from(nmea)?),
             "GGA" => Sentence::Gga(Gga::try_from(nmea)?),
+            "XDR" => Sentence::Xdr(Xdr::try_from(nmea)?),
+            // "ILT" => Sentence::Ilt(Ilt::try_from(nmea)?),
             _ => Sentence::Unknown,
         })
     }
@@ -79,13 +82,13 @@ mod tests {
     fn test_mwv() {
         let input = "$WIMWV,049,R,000.03,N,A*03";
         let output = NmeaParser::parse(input);
-        if let Sentence::Mwv(mwv) = output {
+        if let Ok(Sentence::Mwv(mwv)) = output {
             assert_eq!(mwv.talker_id, "WI");
             assert_eq!(mwv.message_id, "MWV");
         }
         let input = "$WIMWV,180,T,000.11,N,A*02";
         let output = NmeaParser::parse(input);
-        if let Sentence::Mwv(mwv) = output {
+        if let Ok(Sentence::Mwv(mwv)) = output {
             assert_eq!(mwv.talker_id, "WI");
             assert_eq!(mwv.message_id, "MWV");
         }
@@ -96,7 +99,7 @@ mod tests {
         let input = "$GPGGA,113342.000,5045.7837,N,00132.4127,W,1,06,1.3,-10.2,M,47.8,M,,0000*56";
         let output = NmeaParser::parse(input);
         println!("{:?}", output);
-        if let Sentence::Gga(mwv) = output {
+        if let Ok(Sentence::Gga(mwv)) = output {
             assert_eq!(mwv.talker_id, "GP");
             assert_eq!(mwv.message_id, "GGA");
         }

@@ -47,7 +47,7 @@ impl TryFrom<Nmea> for Gga {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FixQuality {
     FixNotValid,
     GpsFix,
