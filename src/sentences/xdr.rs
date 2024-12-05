@@ -1,6 +1,23 @@
 use super::{error::ConvertNMEA0183Error, Reading, TransducerReading, UnitsOfMeasurement};
 use crate::Nmea;
 
+/// Represents the `$WIXDR` (Transducer Measurements) NMEA 0183 sentence.
+///
+/// ### Fields:
+/// - `talker_id`: The talker ID of the sentence (e.g., `WI` for wind instrument).
+/// - `message_id`: The message ID, typically `XDR`.
+/// - `readings`: A vector of optional `TransducerReading` values. Each reading includes:
+///   - Measurement value (`reading`) as a floating-point number.
+///   - Units of measurement (`units`), parsed from a single character.
+///   - Name of the transducer (`name`), describing the type of measurement (e.g., "PITCH", "TEMP").
+///
+/// ### Example NMEA Sentences:
+/// - `$WIXDR,A,+02.9,D,PITCH,A,+00.7,D,ROLL*07<CR><LF>`
+/// - `$WIXDR,C,+023.9,C,TEMP,P,1.0243,B,PRESS,H,039,P,RH*01<CR><LF>`
+///
+/// ### Conversion:
+/// Implements [`TryFrom<Nmea>`] to parse the `$WIXDR` sentence into an `Xdr` struct.
+/// The conversion uses the `to_readings` helper function to process the fields and extract transducer readings.
 #[derive(Debug, Clone)]
 pub struct Xdr {
     pub talker_id: String,

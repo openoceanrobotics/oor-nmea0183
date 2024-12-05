@@ -1,6 +1,27 @@
 use super::error::ConvertNMEA0183Error;
 use crate::Nmea;
 
+/// Represents the `$WIMWV` (Wind Instrument Mean Wind direction and Velocity) NMEA 0183 sentence.
+///
+/// ### Fields:
+/// - `talker_id`: The talker ID of the sentence (e.g., `WI` for wind instrument).
+/// - `message_id`: The message ID, usually `MWV`.
+/// - `wind_direction_deg`: Optional integer value representing the wind direction in degrees (e.g., `049` for 49°).
+/// - `wind_dir_type`: Optional `WindDirectionType` indicating the type of wind direction measurement:
+///   - `Relative`: Wind measurement relative to the instrument's orientation.
+///   - `True`: Wind measurement corrected to true north using a compass or GPS.
+/// - `wind_speed_knots`: Optional floating-point value representing the wind speed in knots (e.g., `000.03` for 0.03 knots).
+/// - `acceptable`: Optional `AcceptableMeasurement` indicating whether the measurement is valid:
+///   - `Acceptable`: The measurement is valid.
+///   - `Void`: The measurement is invalid or void.
+///
+/// ### Example NMEA Sentences:
+/// - `$WIMWV,049,R,000.03,N,A*03<CR><LF>`
+/// - `$WIMWV,049,T,,N,A*18<CR><LF>`
+///
+/// ### Conversion:
+/// Implements [`TryFrom<Nmea>`] to parse the `$WIMWV` sentence into an `Mwv` struct.
+/// The conversion will fail if fields cannot be parsed or contain invalid values.
 #[derive(Debug, Clone)]
 pub struct Mwv {
     pub talker_id: String,
