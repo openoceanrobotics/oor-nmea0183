@@ -1,7 +1,7 @@
 pub mod sentences;
 use pest::Parser;
 use pest_derive::Parser;
-use sentences::{error::ConvertNMEA0183Error, gga::Gga, hdm::Hdm, hdt::Hdt, mwv::Mwv, xdr::Xdr};
+use sentences::{error::ConvertNMEA0183Error, gga::Gga, hdm::Hdm, hdt::Hdt, mwv::Mwv, pgilt::Gilt, xdr::Xdr};
 
 #[derive(Debug)]
 pub enum Sentence {
@@ -11,7 +11,7 @@ pub enum Sentence {
     Gga(sentences::gga::Gga),
     Hdm(sentences::hdm::Hdm),
     Hdt(sentences::hdt::Hdt),
-    // Ilt(sentences::ilt::Ilt), // Propietary
+    Gilt(sentences::pgilt::Gilt),
 }
 
 #[derive(Parser)]
@@ -35,6 +35,7 @@ impl NmeaParser {
             "XDR" => Sentence::Xdr(Xdr::try_from(nmea)?),
             "HDM" => Sentence::Hdm(Hdm::try_from(nmea)?),
             "HDT" => Sentence::Hdt(Hdt::try_from(nmea)?),
+            "GILT" => Sentence::Gilt(Gilt::try_from(nmea)?),
             _ => Sentence::Unknown,
         })
     }
@@ -79,10 +80,7 @@ impl NmeaParser {
 
 #[cfg(test)]
 mod tests {
-    use sentences::{
-        gga::FixQuality,
-        xdr::{TransducerType, UnitsOfMeasurement},
-    };
+    use sentences::{gga::FixQuality, pgilt::ZOrientation, TransducerReading, UnitsOfMeasurement};
 
     use super::*;
 
@@ -116,17 +114,17 @@ mod tests {
             Sentence::Xdr(nmea) => {
                 assert_eq!(nmea.talker_id, "WI");
                 assert_eq!(nmea.message_id, "XDR");
-                if let Some(TransducerType::Temperature(r)) = &nmea.readings[0] {
+                if let Some(TransducerReading::Temperature(r)) = &nmea.readings[0] {
                     assert_eq!(r.reading, Some(23.1));
                     assert_eq!(r.units, Some(UnitsOfMeasurement::Celsius));
                     assert_eq!(r.name, Some("TEMP".into()));
                 }
-                if let Some(TransducerType::Pressure(r)) = &nmea.readings[1] {
+                if let Some(TransducerReading::Pressure(r)) = &nmea.readings[1] {
                     assert_eq!(r.reading, Some(0.9989));
                     assert_eq!(r.units, Some(UnitsOfMeasurement::Bar));
                     assert_eq!(r.name, Some("PRESS".into()));
                 }
-                if let Some(TransducerType::Pressure(r)) = &nmea.readings[2] {
+                if let Some(TransducerReading::Pressure(r)) = &nmea.readings[2] {
                     assert_eq!(r.reading, Some(40.0));
                     assert_eq!(r.units, Some(UnitsOfMeasurement::Percent));
                     assert_eq!(r.name, Some("RH".into()));
@@ -161,39 +159,27 @@ mod tests {
 
     #[test]
     fn test_gilt() {
-        // let input = "$PGILT,A,+00,D,+01,D,+1,TILT*35";
-        // let output = NmeaParser::parse(input).unwrap();
-        // match output {
-        //     Sentence::Gga(nmea) => {
-        //         assert_eq!(nmea.talker_id, "GP");
-        //         assert_eq!(nmea.message_id, "GGA");
-        //         assert_eq!(nmea.fix_time, Some(113342.000));
-        //         assert_eq!(nmea.latitude, Some(5045.7837));
-        //         assert_eq!(nmea.longitude, Some(00132.4127));
-        //         assert_eq!(nmea.fix_quality, Some(FixQuality::GpsFix));
-        //         assert_eq!(nmea.num_satellites, Some(6));
-        //         assert_eq!(nmea.hdop, Some(1.3));
-        //         assert_eq!(nmea.altitude_msl, Some(-10.2));
-        //         assert_eq!(nmea.geoid_separation, Some(47.8));
-        //         assert_eq!(nmea.differential_age, None);
-        //         assert_eq!(nmea.differential_gps_reference_station_id, Some(0));
-        //     }
-        //     _ => panic!("Expected Gga"),
-        // }
-    }
-
-    #[test]
-    fn test_parse_nmea_0183() {
         let input = "$PGILT,A,+00,D,+01,D,+1,TILT*35";
-        let nmea = NmeaParser::to_nmea(input);
-        assert_eq!(nmea.talker_id, "PG");
-        assert_eq!(nmea.message_id, "ILT");
-        assert_eq!(nmea.fields[0], "A");
-        assert_eq!(nmea.fields[1], "+00");
-        assert_eq!(nmea.fields[2], "D");
-        assert_eq!(nmea.fields[3], "+01");
-        assert_eq!(nmea.fields[4], "D");
-        assert_eq!(nmea.fields[5], "+1");
-        assert_eq!(nmea.fields[6], "TILT");
+        let output = NmeaParser::parse(input).unwrap();
+        println!("{:?}", output);
+        match output {
+            Sentence::Gilt(nmea) => {
+                assert_eq!(nmea.talker_id, "P");
+                assert_eq!(nmea.message_id, "GILT");
+                if let Some(TransducerReading::AngularDisplacement(r)) = nmea.x_tilt {
+                    assert_eq!(r.reading, Some(0.0));
+                    assert_eq!(r.units, Some(UnitsOfMeasurement::Degrees));
+                    assert_eq!(r.name, None);
+                }
+                if let Some(TransducerReading::AngularDisplacement(r)) = nmea.y_tilt {
+                    assert_eq!(r.reading, Some(1.0));
+                    assert_eq!(r.units, Some(UnitsOfMeasurement::Degrees));
+                    assert_eq!(r.name, None);
+                }
+                assert_eq!(nmea.z_orientation, Some(ZOrientation::FacingUpright));
+                assert_eq!(nmea.sensor_name, Some("TILT".to_string()));
+            }
+            _ => panic!("Expected Gga"),
+        }
     }
 }
