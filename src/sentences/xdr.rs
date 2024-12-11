@@ -1,4 +1,4 @@
-use super::{error::ConvertNMEA0183Error, Reading, TransducerReading, UnitsOfMeasurement};
+use super::{error::ParseNMEA0183Error, Reading, TransducerReading, UnitsOfMeasurement};
 use crate::Nmea;
 
 /// Represents the `$WIXDR` (Transducer Measurements) NMEA 0183 sentence.
@@ -26,7 +26,7 @@ pub struct Xdr {
 }
 
 impl TryFrom<Nmea> for Xdr {
-    type Error = ConvertNMEA0183Error;
+    type Error = ParseNMEA0183Error;
     fn try_from(nmea: Nmea) -> Result<Self, Self::Error> {
         Ok(Xdr {
             talker_id: nmea.talker_id.clone(),

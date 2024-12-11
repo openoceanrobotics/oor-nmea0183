@@ -1,4 +1,4 @@
-use super::{error::ConvertNMEA0183Error, hdm::HeadingType};
+use super::{error::ParseNMEA0183Error, hdm::HeadingType};
 use crate::Nmea;
 
 #[derive(Debug, Clone)]
@@ -10,7 +10,7 @@ pub struct Hdt {
 }
 
 impl TryFrom<Nmea> for Hdt {
-    type Error = ConvertNMEA0183Error;
+    type Error = ParseNMEA0183Error;
     fn try_from(nmea: Nmea) -> Result<Self, Self::Error> {
         Ok(Hdt {
             talker_id: nmea.talker_id,

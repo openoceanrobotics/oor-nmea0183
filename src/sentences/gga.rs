@@ -1,4 +1,4 @@
-use super::error::ConvertNMEA0183Error;
+use super::error::ParseNMEA0183Error;
 use crate::Nmea;
 
 /// Represents the `$GPGGA` (Global Positioning System Fix Data) NMEA 0183 sentence.
@@ -50,7 +50,7 @@ pub struct Gga {
 }
 
 impl TryFrom<Nmea> for Gga {
-    type Error = ConvertNMEA0183Error;
+    type Error = ParseNMEA0183Error;
     fn try_from(nmea: Nmea) -> Result<Self, Self::Error> {
         let mwv = Gga {
             talker_id: nmea.talker_id,
@@ -66,7 +66,7 @@ impl TryFrom<Nmea> for Gga {
                 4 => FixQuality::RtkFixed,
                 5 => FixQuality::RtkFloat,
                 6 => FixQuality::InsDeadReckoning,
-                field => return Err(ConvertNMEA0183Error::ConvertToEnumError(field.to_string())),
+                field => return Err(ParseNMEA0183Error::ConvertToEnumError(field.to_string())),
             }),
             num_satellites: nmea.fields[6].parse::<u32>().ok(),
             hdop: nmea.fields[7].parse::<f32>().ok(),

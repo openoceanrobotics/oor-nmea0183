@@ -1,4 +1,4 @@
-use super::{error::ConvertNMEA0183Error, Reading, TransducerReading, UnitsOfMeasurement};
+use super::{error::ParseNMEA0183Error, Reading, TransducerReading, UnitsOfMeasurement};
 use crate::Nmea;
 
 #[derive(Debug, Clone)]
@@ -12,7 +12,7 @@ pub struct Gilt {
 }
 
 impl TryFrom<Nmea> for Gilt {
-    type Error = ConvertNMEA0183Error;
+    type Error = ParseNMEA0183Error;
     fn try_from(nmea: Nmea) -> Result<Self, Self::Error> {
         Ok(Gilt {
             talker_id: nmea.talker_id,
@@ -40,12 +40,12 @@ pub enum ZOrientation {
 }
 
 impl TryFrom<i32> for ZOrientation {
-    type Error = ConvertNMEA0183Error;
+    type Error = ParseNMEA0183Error;
     fn try_from(s: i32) -> Result<Self, Self::Error> {
         match s {
             1 => Ok(ZOrientation::FacingUpright),
             -1 => Ok(ZOrientation::FacingDownwards),
-            _ => Err(ConvertNMEA0183Error::ConvertToEnumError(format!(
+            _ => Err(ParseNMEA0183Error::ConvertToEnumError(format!(
                 "Failed to convert: {:?}",
                 s
             ))),

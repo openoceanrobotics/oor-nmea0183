@@ -1,7 +1,9 @@
 pub mod sentences;
 use pest::Parser;
 use pest_derive::Parser;
-use sentences::{error::ConvertNMEA0183Error, gga::Gga, hdm::Hdm, hdt::Hdt, mwv::Mwv, pgilt::Gilt, xdr::Xdr};
+use sentences::{
+    error::ParseNMEA0183Error, gga::Gga, hdm::Hdm, hdt::Hdt, mwv::Mwv, pgilt::Gilt, xdr::Xdr,
+};
 
 #[derive(Debug)]
 pub enum Sentence {
@@ -27,8 +29,8 @@ pub struct Nmea {
 
 pub struct NmeaParser {}
 impl NmeaParser {
-    pub fn parse(nmea_sentence: &str) -> Result<Sentence, ConvertNMEA0183Error> {
-        let nmea = NmeaParser::to_nmea(nmea_sentence);
+    pub fn parse(nmea_sentence: &str) -> Result<Sentence, ParseNMEA0183Error> {
+        let nmea = NmeaParser::to_nmea(nmea_sentence)?;
         Ok(match nmea.message_id.as_ref() {
             "MWV" => Sentence::Mwv(Mwv::try_from(nmea)?),
             "GGA" => Sentence::Gga(Gga::try_from(nmea)?),
@@ -40,11 +42,13 @@ impl NmeaParser {
         })
     }
 
-    fn to_nmea(nmea_sentence: &str) -> Nmea {
-        let parsed = NmeaPest::parse(Rule::NMEA, nmea_sentence)
-            .unwrap()
-            .next()
-            .unwrap();
+    fn to_nmea(nmea_sentence: &str) -> Result<Nmea, ParseNMEA0183Error> {
+        let parsed = match NmeaPest::parse(Rule::NMEA, nmea_sentence) {
+            Ok(p) => p,
+            Err(_) => return Err(ParseNMEA0183Error::ParseGrammarError),
+        }
+        .next()
+        .unwrap();
 
         let mut talker_id = String::default();
         let mut message_type = String::default();
@@ -70,11 +74,11 @@ impl NmeaParser {
             }
         }
 
-        Nmea {
+        Ok(Nmea {
             talker_id,
             message_id: message_type,
             fields,
-        }
+        })
     }
 }
 

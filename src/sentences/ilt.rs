@@ -1,4 +1,4 @@
-use super::error::ConvertNMEA0183Error;
+use super::error::ParseNMEA0183Error;
 use crate::Nmea;
 
 #[derive(Debug, Clone)]
@@ -12,7 +12,7 @@ pub struct Ilt {
 }
 
 impl TryFrom<Nmea> for Ilt {
-    type Error = ConvertNMEA0183Error;
+    type Error = ParseNMEA0183Error;
     fn try_from(nmea: Nmea) -> Result<Self, Self::Error> {
         let mwv = Ilt {
             talker_id: nmea.talker_id,
@@ -21,13 +21,13 @@ impl TryFrom<Nmea> for Ilt {
             wind_dir_type: Some(match nmea.fields[1].as_str() {
                 "R" => WindDirectionType::Relative,
                 "T" => WindDirectionType::True,
-                field => return Err(ConvertNMEA0183Error::ConvertToEnumError(field.to_string())),
+                field => return Err(ParseNMEA0183Error::ConvertToEnumError(field.to_string())),
             }),
             wind_speed_knots: nmea.fields[2].parse::<f32>().ok(),
             acceptable: Some(match nmea.fields[4].as_str() {
                 "A" => AcceptableMeasurement::Acceptable,
                 "V" => AcceptableMeasurement::Void,
-                field => return Err(ConvertNMEA0183Error::ConvertToEnumError(field.to_string())),
+                field => return Err(ParseNMEA0183Error::ConvertToEnumError(field.to_string())),
             }),
         };
         Ok(mwv)
