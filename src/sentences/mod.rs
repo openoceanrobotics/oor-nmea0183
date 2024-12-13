@@ -9,23 +9,35 @@ pub mod xdr;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UnitsOfMeasurement {
+    Amperes,
     Bar,
     Celsius,
     Degrees,
+    Hertz,
+    Kelvin,
+    LitresPerSecond,
     Meter,
     Newton,
+    PartsPerThousand,
     Percent,
+    Volts,
 }
 
 impl UnitsOfMeasurement {
     fn from_char(c: &str) -> Option<Self> {
         match c {
+            "A" => Some(UnitsOfMeasurement::Amperes),
             "B" => Some(UnitsOfMeasurement::Bar),
             "C" => Some(UnitsOfMeasurement::Celsius),
             "D" => Some(UnitsOfMeasurement::Degrees),
+            "H" => Some(UnitsOfMeasurement::Hertz),
+            "I" => Some(UnitsOfMeasurement::LitresPerSecond),
+            "K" => Some(UnitsOfMeasurement::Kelvin),
             "M" => Some(UnitsOfMeasurement::Meter),
             "N" => Some(UnitsOfMeasurement::Newton),
             "P" => Some(UnitsOfMeasurement::Percent),
+            "S" => Some(UnitsOfMeasurement::PartsPerThousand),
+            "V" => Some(UnitsOfMeasurement::Volts),
             _ => None,
         }
     }
