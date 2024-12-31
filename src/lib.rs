@@ -42,6 +42,21 @@ impl NmeaParser {
         })
     }
 
+    fn verify_checksum(sentence: &str, checksum: String) -> Result<(), ParseNMEA0183Error> {
+        let sentence = &sentence[1..sentence.len() - 3];
+        let checksum = u8::from_str_radix(&checksum[1..checksum.len()], 16)?;
+        let mut temp: u8 = 0;
+        for b in sentence.as_bytes() {
+            temp = temp ^ b;
+        }
+
+        if checksum != temp {
+            return Err(sentences::error::ParseNMEA0183Error::NMEA0183ChecksumError);
+        }
+
+        Ok(())
+    }    
+
     fn to_nmea(nmea_sentence: &str) -> Result<Nmea, ParseNMEA0183Error> {
         let parsed = match NmeaPest::parse(Rule::NMEA, nmea_sentence) {
             Ok(p) => p,
@@ -67,11 +82,14 @@ impl NmeaParser {
                         .map(|s| s.to_string())
                         .collect::<Vec<_>>();
                 }
-
-                //TODO(@mattcairns): Verify checksum
                 Rule::checksum => checksum = Some(pair.as_str().to_string()),
                 _ => {}
             }
+        }
+
+        //Return an error if the checksum is invalid
+        if checksum.is_some() {
+            NmeaParser::verify_checksum(nmea_sentence, checksum.unwrap())?;
         }
 
         Ok(Nmea {
@@ -185,5 +203,30 @@ mod tests {
             }
             _ => panic!("Expected Gga"),
         }
+    }
+
+    #[test]
+    fn test_checksum() {
+        let input = "$WIMWV,049,R,000.03,N,A*03";
+        let _ = NmeaParser::parse(input).unwrap();
+
+        let input = "$WIMWV,180,T,000.11,N,A*02";
+        let _ = NmeaParser::parse(input).unwrap();
+
+        let input = "$PGILT,A,+00,D,+01,D,+1,TILT*35";
+        let _ = NmeaParser::parse(input).unwrap();
+
+        let input = "$GPGGA,113342.000,5045.7837,N,00132.4127,W,1,06,1.3,-10.2,M,47.8,M,,0000*56";
+        let _ = NmeaParser::parse(input).unwrap();
+
+        let input = "$GPGSV,2,2,08,15,30,050,47,19,09,158,,26,12,281,40,27,38,173,41*7B";
+        let _ = NmeaParser::parse(input).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_checksum_fail() {
+        let input = "$GPGGA,113342.000,5045.7837,N,00132.4127,W,1,06,1.3,-10.2,M,47.8,M,,0000*5F";
+        let _ = NmeaParser::parse(input).unwrap();
     }
 }
