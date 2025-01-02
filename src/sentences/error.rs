@@ -10,6 +10,8 @@ pub enum ParseNMEA0183Error {
     ConvertToEnumError(String),
     #[error("Cant parse NMEA0183 sentence from PEG grammar.")]
     ParseGrammarError,
+    #[error("NMEA0183 checksum verification failed.")]
+    NMEA0183ChecksumError,
 }
 
 
