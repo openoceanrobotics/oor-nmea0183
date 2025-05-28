@@ -1,4 +1,4 @@
-use super::error::ParseNMEA0183Error;
+use super::{error::ParseNMEA0183Error, UnitsOfSpeed};
 use crate::Nmea;
 
 /// Represents the `$WIMWV` (Wind Instrument Mean Wind direction and Velocity) NMEA 0183 sentence.
@@ -28,7 +28,8 @@ pub struct Mwv {
     pub message_id: String,
     pub wind_direction_deg: Option<i32>,
     pub wind_dir_type: Option<WindDirectionType>,
-    pub wind_speed_knots: Option<f32>,
+    pub wind_speed: Option<f32>,
+    pub wind_speed_units: Option<UnitsOfSpeed>,
     pub acceptable: Option<AcceptableMeasurement>,
 }
 
@@ -44,7 +45,9 @@ impl TryFrom<Nmea> for Mwv {
                 "T" => WindDirectionType::True,
                 field => return Err(ParseNMEA0183Error::ConvertToEnumError(field.to_string())),
             }),
-            wind_speed_knots: nmea.fields[2].parse::<f32>().ok(),
+            wind_speed: nmea.fields[2].parse::<f32>().ok(),
+            wind_speed_units: UnitsOfSpeed::from_char(&nmea.fields[3]),
+
             acceptable: Some(match nmea.fields[4].as_str() {
                 "A" => AcceptableMeasurement::Acceptable,
                 "V" => AcceptableMeasurement::Void,
@@ -66,5 +69,3 @@ pub enum AcceptableMeasurement {
     Acceptable,
     Void,
 }
-
-

@@ -8,6 +8,26 @@ pub mod pgilt;
 pub mod xdr;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub enum UnitsOfSpeed {
+    KilometersPerHour,
+    MetresPerSecond,
+    Knots,
+    StatuteMilesPerHour,
+}
+
+impl UnitsOfSpeed {
+    fn from_char(c: &str) -> Option<Self> {
+        match c {
+            "K" => Some(Self::KilometersPerHour),
+            "M" => Some(Self::MetresPerSecond),
+            "N" => Some(Self::Knots),
+            "S" => Some(Self::StatuteMilesPerHour),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UnitsOfMeasurement {
     Amperes,
     Bar,
@@ -26,18 +46,18 @@ pub enum UnitsOfMeasurement {
 impl UnitsOfMeasurement {
     fn from_char(c: &str) -> Option<Self> {
         match c {
-            "A" => Some(UnitsOfMeasurement::Amperes),
-            "B" => Some(UnitsOfMeasurement::Bar),
-            "C" => Some(UnitsOfMeasurement::Celsius),
-            "D" => Some(UnitsOfMeasurement::Degrees),
-            "H" => Some(UnitsOfMeasurement::Hertz),
-            "I" => Some(UnitsOfMeasurement::LitresPerSecond),
-            "K" => Some(UnitsOfMeasurement::Kelvin),
-            "M" => Some(UnitsOfMeasurement::Meter),
-            "N" => Some(UnitsOfMeasurement::Newton),
-            "P" => Some(UnitsOfMeasurement::Percent),
-            "S" => Some(UnitsOfMeasurement::PartsPerThousand),
-            "V" => Some(UnitsOfMeasurement::Volts),
+            "A" => Some(Self::Amperes),
+            "B" => Some(Self::Bar),
+            "C" => Some(Self::Celsius),
+            "D" => Some(Self::Degrees),
+            "H" => Some(Self::Hertz),
+            "I" => Some(Self::LitresPerSecond),
+            "K" => Some(Self::Kelvin),
+            "M" => Some(Self::Meter),
+            "N" => Some(Self::Newton),
+            "P" => Some(Self::Percent),
+            "S" => Some(Self::PartsPerThousand),
+            "V" => Some(Self::Volts),
             _ => None,
         }
     }
@@ -69,14 +89,14 @@ pub enum TransducerReading {
 impl TransducerReading {
     fn from_nmea(c: &str, reading: Reading) -> Option<Self> {
         match c {
-            "A" => Some(TransducerReading::AngularDisplacement(reading)),
-            "C" => Some(TransducerReading::Temperature(reading)),
-            "D" => Some(TransducerReading::Depth(reading)),
-            "F" => Some(TransducerReading::Frequency(reading)),
-            "H" => Some(TransducerReading::Humidity(reading)),
-            "N" => Some(TransducerReading::Force(reading)),
-            "P" => Some(TransducerReading::Pressure(reading)),
-            "R" => Some(TransducerReading::Flow(reading)),
+            "A" => Some(Self::AngularDisplacement(reading)),
+            "C" => Some(Self::Temperature(reading)),
+            "D" => Some(Self::Depth(reading)),
+            "F" => Some(Self::Frequency(reading)),
+            "H" => Some(Self::Humidity(reading)),
+            "N" => Some(Self::Force(reading)),
+            "P" => Some(Self::Pressure(reading)),
+            "R" => Some(Self::Flow(reading)),
             _ => None,
         }
     }
@@ -88,4 +108,3 @@ pub struct Reading {
     pub units: Option<UnitsOfMeasurement>,
     pub name: Option<String>,
 }
-
