@@ -5,6 +5,8 @@ use sentences::{
     error::ParseNMEA0183Error, gga::Gga, hdm::Hdm, hdt::Hdt, mwv::Mwv, pgilt::Gilt, xdr::Xdr,
 };
 
+use crate::sentences::psvdy::Svdy;
+
 #[derive(Debug)]
 pub enum Sentence {
     Unknown,
@@ -14,6 +16,7 @@ pub enum Sentence {
     Hdm(sentences::hdm::Hdm),
     Hdt(sentences::hdt::Hdt),
     Gilt(sentences::pgilt::Gilt),
+    Svdy(sentences::psvdy::Svdy),
 }
 
 #[derive(Parser)]
@@ -38,6 +41,7 @@ impl NmeaParser {
             "HDM" => Sentence::Hdm(Hdm::try_from(nmea)?),
             "HDT" => Sentence::Hdt(Hdt::try_from(nmea)?),
             "GILT" => Sentence::Gilt(Gilt::try_from(nmea)?),
+            "SVDY" => Sentence::Svdy(Svdy::try_from(nmea)?),
             _ => Sentence::Unknown,
         })
     }
@@ -47,7 +51,7 @@ impl NmeaParser {
         let checksum = u8::from_str_radix(&checksum[1..checksum.len()], 16)?;
         let mut temp: u8 = 0;
         for b in sentence.as_bytes() {
-            temp = temp ^ b;
+            temp ^= b;
         }
 
         if checksum != temp {
@@ -55,7 +59,7 @@ impl NmeaParser {
         }
 
         Ok(())
-    }    
+    }
 
     fn to_nmea(nmea_sentence: &str) -> Result<Nmea, ParseNMEA0183Error> {
         let parsed = match NmeaPest::parse(Rule::NMEA, nmea_sentence) {
@@ -103,6 +107,12 @@ impl NmeaParser {
 #[cfg(test)]
 mod tests {
     use sentences::{gga::FixQuality, pgilt::ZOrientation, TransducerReading, UnitsOfMeasurement};
+    use uom::si::{
+        acceleration::meter_per_second_squared,
+        angle::degree,
+        angular_velocity::degree_per_second,
+        f32::{Acceleration, Angle, AngularVelocity},
+    };
 
     use super::*;
 
@@ -202,6 +212,42 @@ mod tests {
                 assert_eq!(nmea.sensor_name, Some("TILT".to_string()));
             }
             _ => panic!("Expected Gga"),
+        }
+    }
+
+    #[test]
+    fn test_svdy() {
+        use approx::assert_abs_diff_eq;
+
+        let input = "$PSVDY,-0.210,-0.116,9.825,-0.0044,0.0011,-0.0044,217.3,0.6,-1.4,0.021,-0.012,9.828,703*6C";
+        let output = NmeaParser::parse(input).unwrap();
+
+        match output {
+            Sentence::Svdy(nmea) => {
+                let eps = 1e-4; // epsilon for small float comparison
+
+                assert_eq!(nmea.talker_id, "P");
+                assert_eq!(nmea.message_id, "SVDY");
+
+                assert_abs_diff_eq!(nmea.acc_x.unwrap().value, -0.210, epsilon = eps);
+                assert_abs_diff_eq!(nmea.acc_y.unwrap().value, -0.116, epsilon = eps);
+                assert_abs_diff_eq!(nmea.acc_z.unwrap().value, 9.825, epsilon = eps);
+
+                // assert_abs_diff_eq!(nmea.gyr_p.unwrap().value, -0.0044, epsilon = eps);
+                // assert_abs_diff_eq!(nmea.gyr_q.unwrap().value, 0.0011, epsilon = eps);
+                // assert_abs_diff_eq!(nmea.gyr_r.unwrap().value, -0.0044, epsilon = eps);
+
+                // assert_abs_diff_eq!(nmea.heading.unwrap().value, 217.3, epsilon = 1e-3);
+                // assert_abs_diff_eq!(nmea.pitch.unwrap().value, 0.6, epsilon = eps);
+                // assert_abs_diff_eq!(nmea.roll.unwrap().value, -1.4, epsilon = eps);
+
+                assert_abs_diff_eq!(nmea.acc_n.unwrap().value, 0.021, epsilon = eps);
+                assert_abs_diff_eq!(nmea.acc_e.unwrap().value, -0.012, epsilon = eps);
+                assert_abs_diff_eq!(nmea.acc_u.unwrap().value, 9.828, epsilon = eps);
+
+                assert_eq!(nmea.index, Some(703));
+            }
+            _ => panic!("Expected Svdy"),
         }
     }
 

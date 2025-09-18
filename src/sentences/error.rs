@@ -12,6 +12,6 @@ pub enum ParseNMEA0183Error {
     ParseGrammarError,
     #[error("NMEA0183 checksum verification failed.")]
     NMEA0183ChecksumError,
+    #[error("The NMEA0183 message should contain at least {0} fields")]
+    MissingFields(u16),
 }
-
-

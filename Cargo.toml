@@ -1,6 +1,6 @@
 [package]
 name = "oor-nmea0183"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 license = "MIT"
 description = "Convert NMEA0183 sentences"
@@ -11,3 +11,7 @@ repository = "https://github.com/openoceanrobotics/oor-nmea0184"
 pest = "2.7.14"
 pest_derive = "2.7.14"
 thiserror = "2.0.3"
+uom = "0.37.0"
+
+[dev-dependencies]
+approx = "0.5.1"
