@@ -1,25 +1,25 @@
 use crate::{sentences::error::ParseNMEA0183Error, Nmea};
 
-/// Wave energy spectrum telemetry (`$PSVSS`) from the SVS-603HR.
+/// Wave directional energy spectrum telemetry (`$PSVSD`) from the SVS-603HR.
 ///
-/// This sentence provides the **wave energy spectrum** as an array of
+/// This sentence provides the **directional wave energy spectrum** as an array of
 /// spectral energy densities (m²/Hz) for each configured frequency bin.
 ///
 /// Format:
 /// ```text
-/// $PSVSS,E1,E2,...*CS
+/// $PSVSD,E1,E2,...*CS
 /// ```
-/// - `Ei`: spectral energy density for frequency bin i (m²/Hz)
+/// - `Ei`: direcitonal spectral energy density for frequency bin i (m²/Hz)
 #[derive(Debug, Clone)]
-pub struct Svss {
+pub struct Svsd {
     pub talker_id: String,
     pub message_id: String,
 
     /// Spectral energy values for each frequency bin (m²/Hz).
-    pub spectrum_bins: Vec<f32>,
+    pub directional_spectrum_bins: Vec<f32>,
 }
 
-impl TryFrom<Nmea> for Svss {
+impl TryFrom<Nmea> for Svsd {
     type Error = ParseNMEA0183Error;
 
     fn try_from(nmea: Nmea) -> Result<Self, Self::Error> {
@@ -29,16 +29,16 @@ impl TryFrom<Nmea> for Svss {
 
         let bin_fields = &nmea.fields[..nmea.fields.len()];
 
-        let mut spectrum_bins = Vec::with_capacity(bin_fields.len());
+        let mut directional_spectrum_bins = Vec::with_capacity(bin_fields.len());
         for field in bin_fields.iter() {
             let value = field.parse::<f32>()?;
-            spectrum_bins.push(value);
+            directional_spectrum_bins.push(value);
         }
 
-        Ok(Svss {
+        Ok(Svsd {
             talker_id: nmea.talker_id,
             message_id: nmea.message_id,
-            spectrum_bins,
+            directional_spectrum_bins,
         })
     }
 }

@@ -1,5 +1,5 @@
 pub mod sentences;
-use crate::sentences::seaview::{psvdy::Svdy, psvss::Svss};
+use crate::sentences::seaview::{psvdy::Svdy, psvsd::Svsd, psvss::Svss};
 use pest::Parser;
 use pest_derive::Parser;
 use sentences::{
@@ -17,6 +17,7 @@ pub enum Sentence {
     Gilt(sentences::pgilt::Gilt),
     Svdy(sentences::seaview::psvdy::Svdy),
     Svss(sentences::seaview::psvss::Svss),
+    Svsd(sentences::seaview::psvsd::Svsd),
 }
 
 #[derive(Parser)]
@@ -43,6 +44,7 @@ impl NmeaParser {
             "GILT" => Sentence::Gilt(Gilt::try_from(nmea)?),
             "SVDY" => Sentence::Svdy(Svdy::try_from(nmea)?),
             "SVSS" => Sentence::Svss(Svss::try_from(nmea)?),
+            "SVSD" => Sentence::Svsd(Svsd::try_from(nmea)?),
             _ => Sentence::Unknown,
         })
     }
@@ -211,6 +213,32 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
+    fn test_svsd_all_zero() {
+        use approx::assert_abs_diff_eq;
+
+        let input = "$PSVSD,128.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.000 0,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000*49";
+        let output = NmeaParser::parse(input).unwrap();
+
+        match output {
+            Sentence::Svsd(nmea) => {
+                let eps = 1e-6;
+
+                assert_eq!(nmea.talker_id, "P");
+                assert_eq!(nmea.message_id, "SVSD");
+
+                // There should be 14 bins
+                assert_eq!(nmea.directional_spectrum_bins.len(), 14);
+
+                for e in nmea.directional_spectrum_bins.iter() {
+                    assert_abs_diff_eq!(*e, 0.0f32, epsilon = eps);
+                }
+            }
+            _ => panic!("Expected Svss"),
+        }
+    }
+
+    #[test]
     fn test_svss_all_zero() {
         use approx::assert_abs_diff_eq;
 
@@ -225,11 +253,10 @@ mod tests {
                 assert_eq!(nmea.message_id, "SVSS");
 
                 // There should be 14 bins
-                assert_eq!(nmea.energy.len(), 14);
+                assert_eq!(nmea.spectrum_bins.len(), 14);
 
-                for e in nmea.energy.iter() {
-                    let value = e.value;
-                    assert_abs_diff_eq!(value, 0.0, epsilon = eps);
+                for e in nmea.spectrum_bins.iter() {
+                    assert_abs_diff_eq!(*e, 0.0f32, epsilon = eps);
                 }
             }
             _ => panic!("Expected Svss"),
