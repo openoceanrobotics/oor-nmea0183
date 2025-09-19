@@ -1,11 +1,10 @@
 pub mod sentences;
+use crate::sentences::seaview::{psvdy::Svdy, psvss::Svss};
 use pest::Parser;
 use pest_derive::Parser;
 use sentences::{
     error::ParseNMEA0183Error, gga::Gga, hdm::Hdm, hdt::Hdt, mwv::Mwv, pgilt::Gilt, xdr::Xdr,
 };
-
-use crate::sentences::psvdy::Svdy;
 
 #[derive(Debug)]
 pub enum Sentence {
@@ -16,7 +15,8 @@ pub enum Sentence {
     Hdm(sentences::hdm::Hdm),
     Hdt(sentences::hdt::Hdt),
     Gilt(sentences::pgilt::Gilt),
-    Svdy(sentences::psvdy::Svdy),
+    Svdy(sentences::seaview::psvdy::Svdy),
+    Svss(sentences::seaview::psvss::Svss),
 }
 
 #[derive(Parser)]
@@ -42,6 +42,7 @@ impl NmeaParser {
             "HDT" => Sentence::Hdt(Hdt::try_from(nmea)?),
             "GILT" => Sentence::Gilt(Gilt::try_from(nmea)?),
             "SVDY" => Sentence::Svdy(Svdy::try_from(nmea)?),
+            "SVSS" => Sentence::Svss(Svss::try_from(nmea)?),
             _ => Sentence::Unknown,
         })
     }
@@ -107,12 +108,6 @@ impl NmeaParser {
 #[cfg(test)]
 mod tests {
     use sentences::{gga::FixQuality, pgilt::ZOrientation, TransducerReading, UnitsOfMeasurement};
-    use uom::si::{
-        acceleration::meter_per_second_squared,
-        angle::degree,
-        angular_velocity::degree_per_second,
-        f32::{Acceleration, Angle, AngularVelocity},
-    };
 
     use super::*;
 
@@ -212,6 +207,32 @@ mod tests {
                 assert_eq!(nmea.sensor_name, Some("TILT".to_string()));
             }
             _ => panic!("Expected Gga"),
+        }
+    }
+
+    #[test]
+    fn test_svss_all_zero() {
+        use approx::assert_abs_diff_eq;
+
+        let input = "$PSVSS,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000*55";
+        let output = NmeaParser::parse(input).unwrap();
+
+        match output {
+            Sentence::Svss(nmea) => {
+                let eps = 1e-6;
+
+                assert_eq!(nmea.talker_id, "P");
+                assert_eq!(nmea.message_id, "SVSS");
+
+                // There should be 14 bins
+                assert_eq!(nmea.energy.len(), 14);
+
+                for e in nmea.energy.iter() {
+                    let value = e.value;
+                    assert_abs_diff_eq!(value, 0.0, epsilon = eps);
+                }
+            }
+            _ => panic!("Expected Svss"),
         }
     }
 

@@ -1,5 +1,4 @@
-use super::error::ParseNMEA0183Error;
-use crate::Nmea;
+use crate::{sentences::error::ParseNMEA0183Error, Nmea};
 use uom::si::{
     acceleration::meter_per_second_squared,
     angle::degree,
@@ -122,4 +121,3 @@ impl TryFrom<Nmea> for Svdy {
         })
     }
 }
-

@@ -5,7 +5,7 @@ pub mod hdt;
 pub mod ilt;
 pub mod mwv;
 pub mod pgilt;
-pub mod psvdy;
+pub mod seaview;
 pub mod xdr;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
