@@ -293,12 +293,22 @@ mod tests {
                 assert_eq!(nmea.talker_id, "P");
                 assert_eq!(nmea.message_id, "SVSS");
 
-                // There should be 14 bins
-                assert_eq!(nmea.spectrum_bins.len(), 14);
+                let bin = &nmea.bin;
 
-                for e in nmea.spectrum_bins.iter() {
-                    assert_abs_diff_eq!(*e, 0.0f32, epsilon = eps);
-                }
+                assert_abs_diff_eq!(bin.period, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.es_mag, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.n_re, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.n_im, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.e_re, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.e_im, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.u_re, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.u_im, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.u_mag, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.theta, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.a1, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.b1, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.a2, 0.0f32, epsilon = eps);
+                assert_abs_diff_eq!(bin.b2, 0.0f32, epsilon = eps);
             }
             _ => panic!("Expected Svss"),
         }
