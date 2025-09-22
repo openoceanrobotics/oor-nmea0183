@@ -1,5 +1,7 @@
 pub mod sentences;
-use crate::sentences::seaview::{psvdy::Svdy, psvsd::Svsd, psvsi::Svsi, psvss::Svss, psvst::Svst};
+use crate::sentences::seaview::{
+    psvdy::Svdy, psvsd::Svsd, psvsi::Svsi, psvss::Svss, psvst::Svst, psvsv::Svsv,
+};
 use pest::Parser;
 use pest_derive::Parser;
 use sentences::{
@@ -20,6 +22,7 @@ pub enum Sentence {
     Svsd(sentences::seaview::psvsd::Svsd),
     Svst(sentences::seaview::psvst::Svst),
     Svsi(sentences::seaview::psvsi::Svsi),
+    Svsv(sentences::seaview::psvsv::Svsv),
 }
 
 #[derive(Parser)]
@@ -49,6 +52,7 @@ impl NmeaParser {
             "SVSD" => Sentence::Svsd(Svsd::try_from(nmea)?),
             "SVST" => Sentence::Svst(Svst::try_from(nmea)?),
             "SVSI" => Sentence::Svsi(Svsi::try_from(nmea)?),
+            "SVSV" => Sentence::Svsv(Svsv::try_from(nmea)?),
             _ => Sentence::Unknown,
         })
     }
@@ -115,6 +119,7 @@ impl NmeaParser {
 mod tests {
     use chrono::NaiveDateTime;
     use sentences::{gga::FixQuality, pgilt::ZOrientation, TransducerReading, UnitsOfMeasurement};
+    use uom::si::{length::meter, time::second};
 
     use super::*;
 
@@ -240,6 +245,26 @@ mod tests {
                 }
             }
             _ => panic!("Expected Svss"),
+        }
+    }
+
+    #[test]
+    fn test_svsv_parse() {
+        let input = "$PSVSV,0.000,0.024,0.037,-0.663*7C";
+        let output = NmeaParser::parse(input).unwrap();
+
+        match output {
+            Sentence::Svsv(nmea) => {
+                assert_eq!(nmea.talker_id, "P");
+                assert_eq!(nmea.message_id, "SVSV");
+
+                // Check numeric fields
+                assert_eq!(nmea.time.unwrap().get::<second>(), 0.000);
+                assert_eq!(nmea.north.unwrap().get::<meter>(), 0.024);
+                assert_eq!(nmea.east.unwrap().get::<meter>(), 0.037);
+                assert_eq!(nmea.up.unwrap().get::<meter>(), -0.663);
+            }
+            _ => panic!("Expected Svsv"),
         }
     }
 
