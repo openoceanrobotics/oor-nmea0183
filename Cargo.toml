@@ -8,6 +8,7 @@ homepage = "https://github.com/openoceanrobotics"
 repository = "https://github.com/openoceanrobotics/oor-nmea0184"
 
 [dependencies]
+chrono = "0.4.42"
 pest = "2.7.14"
 pest_derive = "2.7.14"
 thiserror = "2.0.3"

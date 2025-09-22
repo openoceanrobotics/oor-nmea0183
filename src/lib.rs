@@ -1,5 +1,5 @@
 pub mod sentences;
-use crate::sentences::seaview::{psvdy::Svdy, psvsd::Svsd, psvss::Svss};
+use crate::sentences::seaview::{psvdy::Svdy, psvsd::Svsd, psvsi::Svsi, psvss::Svss, psvst::Svst};
 use pest::Parser;
 use pest_derive::Parser;
 use sentences::{
@@ -18,6 +18,8 @@ pub enum Sentence {
     Svdy(sentences::seaview::psvdy::Svdy),
     Svss(sentences::seaview::psvss::Svss),
     Svsd(sentences::seaview::psvsd::Svsd),
+    Svst(sentences::seaview::psvst::Svst),
+    Svsi(sentences::seaview::psvsi::Svsi),
 }
 
 #[derive(Parser)]
@@ -45,6 +47,8 @@ impl NmeaParser {
             "SVDY" => Sentence::Svdy(Svdy::try_from(nmea)?),
             "SVSS" => Sentence::Svss(Svss::try_from(nmea)?),
             "SVSD" => Sentence::Svsd(Svsd::try_from(nmea)?),
+            "SVST" => Sentence::Svst(Svst::try_from(nmea)?),
+            "SVSI" => Sentence::Svsi(Svsi::try_from(nmea)?),
             _ => Sentence::Unknown,
         })
     }
@@ -109,6 +113,7 @@ impl NmeaParser {
 
 #[cfg(test)]
 mod tests {
+    use chrono::NaiveDateTime;
     use sentences::{gga::FixQuality, pgilt::ZOrientation, TransducerReading, UnitsOfMeasurement};
 
     use super::*;
@@ -235,6 +240,42 @@ mod tests {
                 }
             }
             _ => panic!("Expected Svss"),
+        }
+    }
+
+    #[test]
+    fn test_svsi_identity_parse() {
+        let input = "$PSVSI,WINDMILL*73";
+        let output = NmeaParser::parse(input).unwrap();
+
+        match output {
+            Sentence::Svsi(nmea) => {
+                assert_eq!(nmea.talker_id, "P");
+                assert_eq!(nmea.message_id, "SVSI");
+
+                let expected = "WINDMILL";
+                assert_eq!(nmea.identity, expected);
+            }
+            _ => panic!("Expected Svst"),
+        }
+    }
+
+    #[test]
+    fn test_svst_timestamp_parse() {
+        let input = "$PSVST,2020-10-02 16:04:53*58";
+        let output = NmeaParser::parse(input).unwrap();
+
+        match output {
+            Sentence::Svst(nmea) => {
+                assert_eq!(nmea.talker_id, "P");
+                assert_eq!(nmea.message_id, "SVST");
+
+                let expected =
+                    NaiveDateTime::parse_from_str("2020-10-02 16:04:53", "%Y-%m-%d %H:%M:%S")
+                        .unwrap();
+                assert_eq!(nmea.timestamp, Some(expected));
+            }
+            _ => panic!("Expected Svst"),
         }
     }
 
