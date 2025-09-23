@@ -1,6 +1,7 @@
 pub mod sentences;
 use crate::sentences::seaview::{
     psvdy::Svdy, psvsd::Svsd, psvsh::Svsh, psvsi::Svsi, psvss::Svss, psvst::Svst, psvsv::Svsv,
+    psvsw::Svsw,
 };
 use pest::Parser;
 use pest_derive::Parser;
@@ -24,6 +25,7 @@ pub enum Sentence {
     Svsi(sentences::seaview::psvsi::Svsi),
     Svsv(sentences::seaview::psvsv::Svsv),
     Svsh(sentences::seaview::psvsh::Svsh),
+    Svsw(sentences::seaview::psvsw::Svsw),
 }
 
 #[derive(Parser)]
@@ -55,6 +57,7 @@ impl NmeaParser {
             "SVSI" => Sentence::Svsi(Svsi::try_from(nmea)?),
             "SVSV" => Sentence::Svsv(Svsv::try_from(nmea)?),
             "SVSH" => Sentence::Svsh(Svsh::try_from(nmea)?),
+            "SVSW" => Sentence::Svsw(Svsw::try_from(nmea)?),
             _ => Sentence::Unknown,
         })
     }
