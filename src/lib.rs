@@ -42,7 +42,7 @@ pub struct Nmea {
 pub struct NmeaParser {}
 impl NmeaParser {
     pub fn parse(nmea_sentence: &str) -> Result<Sentence, ParseNMEA0183Error> {
-        let nmea = NmeaParser::to_nmea(nmea_sentence)?;
+        let nmea = NmeaParser::to_nmea(nmea_sentence.trim())?;
         Ok(match nmea.message_id.as_ref() {
             "MWV" => Sentence::Mwv(Mwv::try_from(nmea)?),
             "GGA" => Sentence::Gga(Gga::try_from(nmea)?),
