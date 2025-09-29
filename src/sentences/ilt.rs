@@ -45,5 +45,3 @@ pub enum AcceptableMeasurement {
     Acceptable,
     Void,
 }
-
-

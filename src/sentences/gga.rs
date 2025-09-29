@@ -3,7 +3,7 @@ use crate::Nmea;
 
 /// Represents the `$GPGGA` (Global Positioning System Fix Data) NMEA 0183 sentence.
 ///
-/// This struct provides detailed information about the GPS fix, including the location, time, 
+/// This struct provides detailed information about the GPS fix, including the location, time,
 /// quality of the fix, and additional positioning details.
 ///
 /// ### Fields:
